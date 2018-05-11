@@ -1,4 +1,9 @@
-let component = ReasonReact.statelessComponent("Star");
+type state = {starred: bool};
+
+type action =
+  | AddStar;
+
+let component = ReasonReact.reducerComponent("Star");
 
 module AddStar = [%graphql
   {|
@@ -30,23 +35,31 @@ module RemoveStarMutation = ReasonApollo.CreateMutation(RemoveStar);
 
 let make = (~viewerHasStarred, ~id, _children) => {
   ...component,
-  render: (_) =>
+  initialState: () => {starred: viewerHasStarred},
+  reducer: (action, _state) =>
+    switch (action) {
+    | AddStar => ReasonReact.Update({starred: true})
+    },
+  render: self => (
     <AddStarMutation>
       ...(
            (addMutation, _) => {
              let newStar = AddStar.make(~starrableId=id, ());
              <button
                onClick=(
-                 _event =>
-                   addMutation(~variables=newStar##variables, ()) |> ignore
+                 _event => {
+                   self.send(AddStar);
+                   addMutation(~variables=newStar##variables, ()) |> ignore;
+                 }
                )>
                (
                  ReasonReact.string(
-                   viewerHasStarred ? {js|★|js} : {js|☆|js},
+                   self.state.starred ? {js|★|js} : {js|☆|js},
                  )
                )
              </button>;
            }
          )
-    </AddStarMutation>,
+    </AddStarMutation>: _
+  ),
 };
