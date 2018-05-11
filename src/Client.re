@@ -6,7 +6,7 @@ let options =
   Js.Dict.fromList([
     (
       "authorization",
-      Js.Json.string("Bearer f010acf32bad0a3320eccc042182716723142633"),
+      Js.Json.string(Credentials.token),
     ),
   ]);
 
